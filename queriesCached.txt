@@ -1,0 +1,56 @@
+Table: ps_cart_product
+Query: INSERT INTO `test_new`.`ps_cart_product` (`id_cart`, `id_product`, `id_address_delivery`, `id_shop`, `id_product_attribute`, `id_customization`, `quantity`, `date_add`) VALUES (3, 16, 3, 1, 28, 0, 1, );
+
+Exeption: Column 'date_add' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_orders
+Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (1, XKBKNABJK, 1, 1, 2, 1, 2, 1, 1, 5, 5, 6, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 61.800000, 61.800000, 61.800000, 0.000000, 59.800000, 59.800000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+
+Exeption: Column 'invoice_date' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_orders
+Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (2, OHSATSERP, 1, 1, 2, 1, 2, 2, 1, 5, 5, 1, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 169.900000, 169.900000, 169.900000, 0.000000, 169.900000, 169.900000, 0.000000, 0.000000, 0.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+
+Exeption: Column 'invoice_date' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_orders
+Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (3, UOYEVOLI, 1, 1, 2, 1, 2, 3, 1, 5, 5, 8, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 14.900000, 14.900000, 14.900000, 0.000000, 12.900000, 12.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+
+Exeption: Column 'invoice_date' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_orders
+Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (4, FFATNOMMJ, 1, 1, 2, 1, 2, 4, 1, 5, 5, 1, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 14.900000, 14.900000, 14.900000, 0.000000, 12.900000, 12.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+
+Exeption: Column 'invoice_date' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_orders
+Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (5, KHWLILZLL, 1, 1, 2, 1, 2, 5, 1, 5, 5, 10, b44a6d9efd7a0076a0fbce6b15eaf3b1, Bank wire, 1.000000, ps_wirepayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 20.900000, 20.900000, 20.900000, 0.000000, 18.900000, 18.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+
+Exeption: Column 'invoice_date' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_specific_price
+Query: INSERT INTO `test_new`.`ps_specific_price` (`id_specific_price`, `id_specific_price_rule`, `id_cart`, `id_product`, `id_shop`, `id_shop_group`, `id_currency`, `id_country`, `id_group`, `id_customer`, `id_product_attribute`, `price`, `from_quantity`, `reduction`, `reduction_tax`, `reduction_type`, `from`, `to`) VALUES (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1.000000, 1, 0.200000, 1, percentage, , );
+
+Exeption: Column 'from' cannot be null;
+
+
+_____________________________________________________________________________________________________
+Table: ps_specific_price
+Query: INSERT INTO `test_new`.`ps_specific_price` (`id_specific_price`, `id_specific_price_rule`, `id_cart`, `id_product`, `id_shop`, `id_shop_group`, `id_currency`, `id_country`, `id_group`, `id_customer`, `id_product_attribute`, `price`, `from_quantity`, `reduction`, `reduction_tax`, `reduction_type`, `from`, `to`) VALUES (2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, -1.000000, 1, 0.200000, 1, percentage, , );
+
+Exeption: Column 'from' cannot be null;
+
+
+_____________________________________________________________________________________________________
