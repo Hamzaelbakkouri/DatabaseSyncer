@@ -1,147 +1,77 @@
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (1, John DOE, pub@prestashop.com, John DOE pub@prestashop.com, John, DOE);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (1, John DOE, pub@prestashop.com, John DOE pub@prestashop.com, John, DOE);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
-
-
-_____________________________________________________________________________________________________
-Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (2, Romain CHIRON, romainchiron@hotmail.fr, Romain CHIRON romainchiron@hotmail.fr, Romain, CHIRON);
-
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (3, Nicolas bouchet, nicolas@agence-newriver.com, Nicolas bouchet nicolas@agence-newriver.com, Nicolas, bouchet);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (2, Romain CHIRON, romainchiron@hotmail.fr, Romain CHIRON romainchiron@hotmail.fr, Romain, CHIRON);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
-
-
-_____________________________________________________________________________________________________
-Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (4, Hamza Benjilali, cbr-fs@hotmail.com, Hamza Benjilali cbr-fs@hotmail.com, Hamza, Benjilali);
-
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (5, Audrey tourneur, snipgirl77@dbmail.com, Audrey tourneur snipgirl77@dbmail.com, Audrey, tourneur);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (3, Nicolas bouchet, nicolas@agence-newriver.com, Nicolas bouchet nicolas@agence-newriver.com, Nicolas, bouchet);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
-
-
-_____________________________________________________________________________________________________
-Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (6, damien marx, marx.damien@gmail.com, damien marx marx.damien@gmail.com, damien, marx);
-
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (7, Jean-Michel Guestin, jm.guestin@gmail.com, Jean-Michel Guestin jm.guestin@gmail.com, Jean-Michel, Guestin);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (4, Hamza Benjilali, cbr-fs@hotmail.com, Hamza Benjilali cbr-fs@hotmail.com, Hamza, Benjilali);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
-
-
-_____________________________________________________________________________________________________
-Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (8, Fabien reynaud, fabreynaud@yahoo.fr, Fabien reynaud fabreynaud@yahoo.fr, Fabien, reynaud);
-
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (9, Habib KARAMOKO, subzeroal@hotmail.com, Habib KARAMOKO subzeroal@hotmail.com, Habib, KARAMOKO);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (5, Audrey tourneur, snipgirl77@dbmail.com, Audrey tourneur snipgirl77@dbmail.com, Audrey, tourneur);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_customer_search_kerawen
-Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (10, Fabien bardary, f.bardary2@gmail.com, Fabien bardary f.bardary2@gmail.com, Fabien, bardary);
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (6, damien marx, marx.damien@gmail.com, damien marx marx.damien@gmail.com, damien, marx);
 
-Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (7, Jean-Michel Guestin, jm.guestin@gmail.com, Jean-Michel Guestin jm.guestin@gmail.com, Jean-Michel, Guestin);
+
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (8, Fabien reynaud, fabreynaud@yahoo.fr, Fabien reynaud fabreynaud@yahoo.fr, Fabien, reynaud);
+
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (9, Habib KARAMOKO, subzeroal@hotmail.com, Habib KARAMOKO subzeroal@hotmail.com, Habib, KARAMOKO);
+
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `newpresta_8`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (10, Fabien bardary, f.bardary2@gmail.com, Fabien bardary f.bardary2@gmail.com, Fabien, bardary);
+
+Exception: The target table ps_customer_search_kerawen of the INSERT is not insertable-into;
 
 
 _____________________________________________________________________________________________________
 Table: ps_product_search_kerawen
-Query: INSERT INTO `test_new`.`ps_product_search_kerawen` (`id_product`, `id_shop`, `id_lang`, `data`) VALUES (1, 1, 1, 1);
+Query: INSERT INTO `newpresta_8`.`ps_product_search_kerawen` (`id_product`, `id_shop`, `id_lang`, `data`) VALUES (1, 1, 1, 1);
 
 Exception: The target table ps_product_search_kerawen of the INSERT is not insertable-into;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (1, 153956, 39.00, 39.00, , 258290162, 1002506131, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 04:46:08);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (2, 153957, 54.00, 54.00, , 258292312, 1002508999, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 05:50:42);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (3, 153961, 65.00, 65.00, , 401492607, 1552899548, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 08:52:09);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (4, 153962, 108.00, 108.00, , 401493066, 1552899791, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 08:56:42);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (5, 153969, 142.00, 142.00, , 401514454, 1552920964, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 11:05:30);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (6, 153977, 100.00, 100.00, , 401528212, 1552934163, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 12:28:59);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (7, 153978, 878.00, 878.00, , 258361685, 1002585410, 1, Mastercard, 1, 1970-01-01 00:00:00, 2021-06-18 12:38:13);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (8, 153979, 72.00, 72.00, , 401530912, 1552936927, 1, Visa Electron, 1, 1970-01-01 00:00:00, 2021-06-18 12:50:51);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (9, 153981, 153.00, 153.00, , 401531939, 1552937748, 1, Visa, 1, 1970-01-01 00:00:00, 2021-06-18 12:59:59);
-
-Exception: Field 'id_cart' doesn't have a default value;
-
-
-_____________________________________________________________________________________________________
-Table: ps_up2pay_transaction
-Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (10, 153983, 73.00, 73.00, , 401533230, 1552939092, 1, Visa, 1, 1970-01-01 00:00:00, 2021-06-18 13:11:18);
-
-Exception: Field 'id_cart' doesn't have a default value;
 
 
 _____________________________________________________________________________________________________

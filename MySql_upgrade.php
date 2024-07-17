@@ -24,6 +24,7 @@ class DatabaseSyncer
     private $processedTables;
     private $startTime;
     private $lastUpdateTime;
+    private $lastProcessedTables = 0;
 
     /**
      * The DatabaseSyncer constructor
@@ -231,10 +232,7 @@ class DatabaseSyncer
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
         }
-        $endTime = microtime(true);
-        $executionTime = $endTime - $this->startTime;
-        
-        echo "\nTotal execution time: " . number_format($executionTime, 2) . " seconds\n";
+
     }
 
     /**
@@ -477,6 +475,7 @@ class DatabaseSyncer
                 $this->syncTable($tableName);
                 $this->processedTables++;
                 $this->displayProgress();
+                $this->lastProcessedTables = $this->processedTables;
             } else {
                 echo "\e[1;37;41m" . $tableName . " not inserted because its depends directly on the project \e[0m\n";
             }
@@ -484,43 +483,42 @@ class DatabaseSyncer
     }
 
     private function displayProgress()
-    {
-        $currentTime = microtime(true);
-        $progress = ($this->processedTables / $this->totalTables) * 100;
-        $estimatedTimeRemaining = $this->estimateRemainingTime($currentTime);
-        
-        echo sprintf("\rProgress: %.2f%% - Estimated time remaining: %s", 
-            $progress, 
-            $estimatedTimeRemaining
-        );
-        
-        $this->lastUpdateTime = $currentTime;
+{
+    $currentTime = microtime(true);
+    $progress = min(($this->processedTables / max($this->totalTables, 1)) * 100, 100);
+    $estimatedTimeRemaining = $this->estimateRemainingTime($currentTime);
+    
+    echo sprintf("\rProgress: %.2f%% - Estimated time remaining: %s", 
+        $progress, 
+        $estimatedTimeRemaining
+    );
+    
+    $this->lastUpdateTime = $currentTime;
+}
+
+private function estimateRemainingTime($currentTime)
+{
+    if ($this->processedTables == 0) {
+        return "Calculating...";
     }
 
+    $elapsedTime = $currentTime - $this->startTime;
+    $timePerTable = $elapsedTime / $this->processedTables;
+    $remainingTables = max($this->totalTables - $this->processedTables, 0);
+    $remainingTime = $timePerTable * $remainingTables;
 
-    private function estimateRemainingTime($currentTime)
-    {
-        if ($this->processedTables == 0) {
-            return "Calculating...";
-        }
-
-        $elapsedTime = $currentTime - $this->startTime;
-        $timePerTable = $elapsedTime / $this->processedTables;
-        $remainingTables = $this->totalTables - $this->processedTables;
-        $remainingTime = $timePerTable * $remainingTables;
-
-        // Adjust estimation based on recent progress
-        $recentTimePerTable = ($currentTime - $this->lastUpdateTime) / 1;
-        $adjustedRemainingTime = ($remainingTime + $recentTimePerTable * $remainingTables) / 2;
-        
-        if ($adjustedRemainingTime < 60) {
-            return sprintf("%.0f seconds", $adjustedRemainingTime);
-        } elseif ($adjustedRemainingTime < 3600) {
-            return sprintf("%.1f minutes", $adjustedRemainingTime / 60);
-        } else {
-            return sprintf("%.1f hours", $adjustedRemainingTime / 3600);
-        }
+    // Adjust estimation based on recent progress
+    $recentTimePerTable = ($currentTime - $this->lastUpdateTime) / max(1, $this->processedTables - $this->lastProcessedTables);
+    $adjustedRemainingTime = max(($remainingTime + $recentTimePerTable * $remainingTables) / 2, 0);
+    
+    if ($adjustedRemainingTime < 60) {
+        return sprintf("%.0f seconds", $adjustedRemainingTime);
+    } elseif ($adjustedRemainingTime < 3600) {
+        return sprintf("%.1f minutes", $adjustedRemainingTime / 60);
+    } else {
+        return sprintf("%.1f hours", $adjustedRemainingTime / 3600);
     }
+}
 
 
     /**
@@ -799,5 +797,5 @@ class DatabaseSyncer
     }
 }
 
-$syncer = new DatabaseSyncer('avdb_new', 'test_new', false, false);
+$syncer = new DatabaseSyncer('avdb_8', 'newpresta_8', false, false);
 $syncer->syncDatabases();
