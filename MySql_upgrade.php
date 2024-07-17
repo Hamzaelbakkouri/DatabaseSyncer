@@ -16,6 +16,14 @@ class DatabaseSyncer
     private $catchQueries;
     private $db1Columns;
     private $db2Columns;
+    private $failedTables;
+    private $relatedTablesToHandle;
+    private $relatedTables;
+    private $test_duration_rows;
+    private $totalTables;
+    private $processedTables;
+    private $startTime;
+    private $lastUpdateTime;
 
     /**
      * The DatabaseSyncer constructor
@@ -161,11 +169,29 @@ class DatabaseSyncer
             "ps_wishlist_product",
             "ps_wishlist_product_cart"
         ];
+        $this->relatedTables = [
+            "ps_kerawen_525_till_flow" => "ps_kerawen_525_operation",
+            "ps_kerawen_525_payment" => "ps_kerawen_525_operation",
+            "ps_kerawen_525_sale" => "ps_kerawen_525_operation",
+            "ps_kerawen_525_order" => "ps_kerawen_525_sale",
+            "ps_kerawen_525_discount" => "ps_kerawen_525_sale",
+            "ps_kerawen_525_duplicate" => "ps_kerawen_525_sale",
+            "ps_kerawen_525_sale_tax" => "ps_kerawen_525_sale",
+            "ps_kerawen_525_sale_detail" => "ps_kerawen_525_order",
+            "ps_kerawen_525_invoice" => "ps_kerawen_525_order",
+            "ps_kerawen_525_order_tax" => "ps_kerawen_525_order",
+            "ps_kerawen_525_gtotal_tax" => "ps_kerawen_525_gtotal"
+        ];
+        $this->relatedTablesToHandle = [];
         $this->results = [];
+        $this->failedTables = [];
         $this->tables = [];
         $this->exceptions = [];
         $this->errorPlaces = [];
         $this->catchQueries = [];
+        $this->test_duration_rows = 0;
+        $this->totalTables = 0;
+        $this->processedTables = 0;
 
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -183,16 +209,32 @@ class DatabaseSyncer
      */
     public function syncDatabases()
     {
+        $time_pre = microtime(true);
+        $this->lastUpdateTime = $this->startTime;
         try {
+
             $this->connect();
             $this->fetchColumnInformation();
             $this->compareSchemas();
+            $this->totalTables = count($this->db1Columns) - count($this->tablesIgnore);
             $this->syncTables();
+            !empty($this->failedTables) && $this->reSyncFailedTables();
+            !empty($this->relatedTables) && $this->reSyncRelatedTables();
             $this->printResults();
+            $this->showFailedTables();
+
+            $time_post = microtime(true);
+            $exec_time = $time_post - $time_pre;
+            echo "\n⏱️   Execution time: " . number_format($exec_time, 2) . " seconds\n";
+
             $this->handleCatchedQueries();
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
         }
+        $endTime = microtime(true);
+        $executionTime = $endTime - $this->startTime;
+        
+        echo "\nTotal execution time: " . number_format($executionTime, 2) . " seconds\n";
     }
 
     /**
@@ -209,10 +251,12 @@ class DatabaseSyncer
      */
     private function fetchColumnInformation()
     {
-        $columnsQuery1 = $this->bdd1->query("SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='" . $this->dbname1 . "';");
-        $columnsQuery2 = $this->bdd2->query("SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='" . $this->dbname2 . "';");
+        $columnsQuery1 = $this->bdd1->query("SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" . $this->dbname1 . "' ORDER BY TABLE_NAME, ORDINAL_POSITION;");
+        $columnsQuery2 = $this->bdd2->query("SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" . $this->dbname2 . "' ORDER BY TABLE_NAME, ORDINAL_POSITION;");
 
         $columns1 = $columnsQuery1->fetchAll(PDO::FETCH_ASSOC);
+        // var_dump($columns1);
+        // die;
         $columns2 = $columnsQuery2->fetchAll(PDO::FETCH_ASSOC);
 
         $this->db1Columns = $this->convertToAssociativeArray($columns1);
@@ -227,7 +271,7 @@ class DatabaseSyncer
      */
     private function convertToAssociativeArray($columns)
     {
-        var_dump($columns);
+        // var_dump($columns);
         $result = [];
         foreach ($columns as $column) {
             $result[$column['TABLE_NAME']][$column['COLUMN_NAME']] = $column['COLUMN_TYPE'];
@@ -264,9 +308,9 @@ class DatabaseSyncer
         // var_dump($columns);
         // die;
         if (!isset($this->db2Columns[$tableName])) {
-            // var_dump($columns);
+            $this->createTable($tableName);
+            // var_dump($tableName);
             // die;
-            $this->createTable($tableName, $columns);
         } else {
             foreach ($columns as $columnName => $columnType) {
                 if (!isset($this->db2Columns[$tableName][$columnName])) {
@@ -279,35 +323,91 @@ class DatabaseSyncer
             }
         }
     }
-    
+
+    /**
+     * skip adding column to table when the column is shared between tables
+     *
+     * @param  mixed $tableName
+     * @param  mixed $columnName
+     * @return void
+     */
+    private function skipColumn($tableName, $columnName)
+    {
+        $this->results[] = "Column $columnName Not added to table $tableName in Database 2 and data not copied";
+    }
+
+    /**
+     * add column to table when the column is shared between tables
+     *
+     * @param  mixed $tableName
+     * @param  mixed $columnName
+     * @param  mixed $columnType
+     * @return void
+     */
+    private function addColumn($tableName, $columnName, $columnType)
+    {
+        $alterQuery = $this->bdd2->query("ALTER TABLE `$this->dbname2`.`$tableName` ADD COLUMN `$columnName` $columnType");
+        $this->bdd2->exec($alterQuery);
+        $this->results[] = "Column $columnName added to table $tableName in Database 2 and data copied";
+    }
+
+    /**
+     * add column into a diffrent table in db2 when the column is shared between tables
+     *
+     * @param  mixed $tableName
+     * @param  mixed $columnName
+     * @param  mixed $columnType
+     * @return void
+     */
+    private function otherTableAddColumn($tableName, $columnName, $columnType)
+    {
+        $alterQuery = $this->bdd2->query("ALTER TABLE `$this->dbname2`.`$tableName` ADD COLUMN `$columnName` $columnType");
+        $this->bdd2->exec($alterQuery);
+        $this->results[] = "Column $columnName added to table $tableName in Database 2 and data copied";
+    }
+
     /**
      * Creates a new table in the target database
      * 
      * @param string $tableName Name of the table to create
      * @param array $columns Columns of the table
      */
-    private function createTable($tableName, $columns)
+    private function createTable($tableName)
     {
         if ($this->isView($tableName)) {
-            $this->createView($tableName);
-        } else {
-            $createTableSQL = "CREATE TABLE `$tableName` (";
-            $columnDefinitions = [];
-            foreach ($columns as $columnName => $columnType) {
-                $columnDefinitions[] = "`$columnName` $columnType";
-            }
-            $createTableSQL .= implode(', ', $columnDefinitions) . ");";
-            $this->bdd2->query($createTableSQL);
-            echo "\n\e[1;37;43m Table " . $tableName . " created in " . $this->dbname2 . " db\e[0m\n";
+            return $this->createView($tableName);
+        }
+
+        // Get the CREATE TABLE statement from the source database
+        $showCreateStmt = $this->bdd1->prepare("SHOW CREATE TABLE `$tableName`");
+        $showCreateStmt->execute();
+        $createTableSql = $showCreateStmt->fetchColumn(1);
+
+        // Modify the CREATE TABLE statement to fix invalid default values
+        $createTableSql = preg_replace(
+            [
+                "/DEFAULT '0000-00-00 00:00:00'/i",
+                "/DEFAULT '0000-00-00'/i"
+            ],
+            "DEFAULT CURRENT_TIMESTAMP",
+            $createTableSql
+        );
+
+        // Create the table in the target database
+        try {
+            $this->bdd2->exec($createTableSql);
+            echo "\n\e[1;37;43m Table $tableName created in {$this->dbname2} db\e[0m\n";
+        } catch (PDOException $e) {
+            echo "\n\e[1;37;41m Error creating table $tableName: " . $e->getMessage() . "\e[0m\n";
+            var_dump($tableName, $e->errorInfo);
         }
     }
-
 
     /**
      * Check if the table is a view or not
      *
-     * @param  mixed $tableName
-     * @return void
+     * @param  string $tableName
+     * @return bool
      */
     private function isView($tableName)
     {
@@ -317,7 +417,6 @@ class DatabaseSyncer
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['TABLE_TYPE'] === 'VIEW';
     }
-
 
     /**
      * create view in the target database if the table is a view
@@ -344,18 +443,85 @@ class DatabaseSyncer
     }
 
     /**
+     * check if the table exists in the target database
+     *
+     * @param  object $db
+     * @param  string $tableName
+     * @return bool
+     */
+    private function tableExist($db, $tableName): bool
+    {
+        $stmt = $db->prepare("SELECT EXISTS (SELECT * FROM information_schema.tables WHERE table_schema = '" . $this->dbname2 . "' AND table_name = '" . $tableName . "');");
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    /**
      * Synchronizes all tables between databases
      */
     private function syncTables()
     {
         foreach ($this->db1Columns as $tableName => $columns) {
             if (!in_array($tableName, $this->tablesIgnore)) {
+                if (array_key_exists($tableName, $this->relatedTables)) {
+
+                    $isExist = $this->tableExist($this->bdd2, $this->relatedTables[$tableName]);
+                    if (!$isExist) {
+                        $this->createTable($this->relatedTables[$tableName]);
+                        $this->syncTable($this->relatedTables[$tableName]);
+                        array_push($this->relatedTablesToHandle, $tableName);
+                        continue;
+                    }
+                    $this->syncTable($tableName);
+                }
                 $this->syncTable($tableName);
+                $this->processedTables++;
+                $this->displayProgress();
             } else {
                 echo "\e[1;37;41m" . $tableName . " not inserted because its depends directly on the project \e[0m\n";
             }
         }
     }
+
+    private function displayProgress()
+    {
+        $currentTime = microtime(true);
+        $progress = ($this->processedTables / $this->totalTables) * 100;
+        $estimatedTimeRemaining = $this->estimateRemainingTime($currentTime);
+        
+        echo sprintf("\rProgress: %.2f%% - Estimated time remaining: %s", 
+            $progress, 
+            $estimatedTimeRemaining
+        );
+        
+        $this->lastUpdateTime = $currentTime;
+    }
+
+
+    private function estimateRemainingTime($currentTime)
+    {
+        if ($this->processedTables == 0) {
+            return "Calculating...";
+        }
+
+        $elapsedTime = $currentTime - $this->startTime;
+        $timePerTable = $elapsedTime / $this->processedTables;
+        $remainingTables = $this->totalTables - $this->processedTables;
+        $remainingTime = $timePerTable * $remainingTables;
+
+        // Adjust estimation based on recent progress
+        $recentTimePerTable = ($currentTime - $this->lastUpdateTime) / 1;
+        $adjustedRemainingTime = ($remainingTime + $recentTimePerTable * $remainingTables) / 2;
+        
+        if ($adjustedRemainingTime < 60) {
+            return sprintf("%.0f seconds", $adjustedRemainingTime);
+        } elseif ($adjustedRemainingTime < 3600) {
+            return sprintf("%.1f minutes", $adjustedRemainingTime / 60);
+        } else {
+            return sprintf("%.1f hours", $adjustedRemainingTime / 3600);
+        }
+    }
+
 
     /**
      * Synchronizes a single table between databases
@@ -364,26 +530,69 @@ class DatabaseSyncer
      */
     private function syncTable($tableName)
     {
-        $totalFailed = 0;
+        try {
+            $totalFailed = 0;
+            $stmt = $this->bdd2->prepare("SELECT EXISTS (SELECT * FROM information_schema.tables WHERE table_schema = '" . $this->dbname2 . "' AND table_name = '" . $tableName . "');");
+            $stmt->execute();
+            if (!$stmt->fetchColumn()) {
 
-        $truncateQuery = "TRUNCATE TABLE `$this->dbname2`.`$tableName`";
-        $this->bdd2->query($truncateQuery);
+                echo "\nTable $tableName does not exist in target database. Skipping.\n";
+                // Skip to the next table
+                $this->failedTables[] = $tableName;
+                return;
+            }
 
-        $columnsToInsert = $this->getColumnsToInsert($tableName);
-        $columnList = $this->getColumnList($columnsToInsert);
-        $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
-        $selectQuery = $this->bdd1->query("SELECT $columnList FROM `$this->dbname1`.`$tableName`");
-        $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList) VALUES ($placeholders)");
+            $truncateQuery = "TRUNCATE TABLE `$this->dbname2`.`$tableName`";
+            $this->bdd2->query($truncateQuery);
 
-        while ($row = $selectQuery->fetch(PDO::FETCH_ASSOC)) {
-            $this->handleDateProblem($row);
-            $sqlUnbinded = $this->getSqlUnbinded($tableName, $columnList, $row);
-            $totalFailed += $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
+
+            $columnsToInsert = $this->getColumnsToInsert($tableName);
+            $columnList = $this->getColumnList($columnsToInsert);
+            $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
+            $selectQuery = $this->bdd1->query("SELECT $columnList FROM `$this->dbname1`.`$tableName`");
+            $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList) VALUES ($placeholders)");
+
+            while ($row = $selectQuery->fetch(PDO::FETCH_ASSOC)) {
+                $this->handleDateProblem($row);
+                $sqlUnbinded = $this->getSqlUnbinded($tableName, $columnList, $row);
+                $totalFailed += $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
+            }
+
+            if ($this->DEBUG_MODE) echo "\e[1;37;42m Inserted row in table $tableName\e[0m\n";
+
+            $this->ErrorPlaces($tableName, $totalFailed);
+        } catch (PDOException $e) {
+            echo "\n\e[1;37;41mError syncing table $tableName: " . $e->getMessage() . "\e[0m\n";
+            // db ghadi tskipa
+            array_push($this->failedTables, $tableName);
+            return;
         }
+    }
 
-        if ($this->DEBUG_MODE) echo "\e[1;37;42m Inserted row in table $tableName\e[0m\n";
+    /**
+     * function to re Sync Failed Tables
+     *
+     * @return void
+     */
+    private function reSyncFailedTables()
+    {
+        foreach ($this->failedTables as $tableName) {
+            $this->compareTable($tableName, $this->db1Columns[$tableName]);
+        }
+        $this->failedTables = [];
+    }
 
-        $this->ErrorPlaces($tableName, $totalFailed);
+    /**
+     * function to re Sync Related Tables
+     *
+     * @return void
+     */
+    private function reSyncRelatedTables()
+    {
+        foreach ($this->relatedTablesToHandle as $name) {
+            $this->compareTable($name, $this->db1Columns[$name]);
+        }
+        $this->relatedTablesToHandle = [];
     }
 
     /**
@@ -483,11 +692,6 @@ class DatabaseSyncer
         return 0;
     }
 
-
-
-
-
-
     /**
      * Handles insertion problems interactively
      * 
@@ -542,13 +746,15 @@ class DatabaseSyncer
             }
         }
 
-        echo "\n______________________________________________________________________________________________________________________________________________________________________\n\n";
-        foreach ($this->errorPlaces as $value) {
-            if ($value["error"] > 0) {
-                echo  "❌ " . $value["table"] . " : (" . $value["error"] . " erreur/" . $value["total"] . " Total)\n";
+        if (!empty($this->errorPlaces)) {
+            echo "\n______________________________________________________________________________________________________________________________________________________________________\n\n";
+            foreach ($this->errorPlaces as $value) {
+                if ($value["error"] > 0) {
+                    echo  "❌ " . $value["table"] . " : (" . $value["error"] . " erreur/" . $value["total"] . " Total)\n";
+                }
             }
+            echo "\n______________________________________________________________________________________________________________________________________________________________________\n";
         }
-        echo "\n______________________________________________________________________________________________________________________________________________________________________\n";
     }
 
     /**
@@ -575,8 +781,23 @@ class DatabaseSyncer
         }
         echo "program out";
     }
+
+    /**
+     * show failed tables to sync
+     *
+     * @return void
+     */
+    private function showFailedTables()
+    {
+        if (!empty($this->failedTables)) {
+            echo "\n______________________________________________________________________________________________________________________________________________________________________\n\n";
+            foreach ($this->failedTables as $table) {
+                echo  "❌ " . $table . " : failed to sync\n";
+            }
+            echo "\n______________________________________________________________________________________________________________________________________________________________________\n";
+        }
+    }
 }
 
-
-$syncer = new DatabaseSyncer('avdb_7', 'test_new', false, false);
+$syncer = new DatabaseSyncer('avdb_new', 'test_new', false, false);
 $syncer->syncDatabases();

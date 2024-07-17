@@ -1,56 +1,147 @@
-Table: ps_cart_product
-Query: INSERT INTO `test_new`.`ps_cart_product` (`id_cart`, `id_product`, `id_address_delivery`, `id_shop`, `id_product_attribute`, `id_customization`, `quantity`, `date_add`) VALUES (3, 16, 3, 1, 28, 0, 1, );
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (1, John DOE, pub@prestashop.com, John DOE pub@prestashop.com, John, DOE);
 
-Exeption: Column 'date_add' cannot be null;
-
-
-_____________________________________________________________________________________________________
-Table: ps_orders
-Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (1, XKBKNABJK, 1, 1, 2, 1, 2, 1, 1, 5, 5, 6, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 61.800000, 61.800000, 61.800000, 0.000000, 59.800000, 59.800000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
-
-Exeption: Column 'invoice_date' cannot be null;
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
 
 
 _____________________________________________________________________________________________________
-Table: ps_orders
-Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (2, OHSATSERP, 1, 1, 2, 1, 2, 2, 1, 5, 5, 1, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 169.900000, 169.900000, 169.900000, 0.000000, 169.900000, 169.900000, 0.000000, 0.000000, 0.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (2, Romain CHIRON, romainchiron@hotmail.fr, Romain CHIRON romainchiron@hotmail.fr, Romain, CHIRON);
 
-Exeption: Column 'invoice_date' cannot be null;
-
-
-_____________________________________________________________________________________________________
-Table: ps_orders
-Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (3, UOYEVOLI, 1, 1, 2, 1, 2, 3, 1, 5, 5, 8, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 14.900000, 14.900000, 14.900000, 0.000000, 12.900000, 12.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
-
-Exeption: Column 'invoice_date' cannot be null;
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
 
 
 _____________________________________________________________________________________________________
-Table: ps_orders
-Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (4, FFATNOMMJ, 1, 1, 2, 1, 2, 4, 1, 5, 5, 1, b44a6d9efd7a0076a0fbce6b15eaf3b1, Payment by check, 1.000000, ps_checkpayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 14.900000, 14.900000, 14.900000, 0.000000, 12.900000, 12.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (3, Nicolas bouchet, nicolas@agence-newriver.com, Nicolas bouchet nicolas@agence-newriver.com, Nicolas, bouchet);
 
-Exeption: Column 'invoice_date' cannot be null;
-
-
-_____________________________________________________________________________________________________
-Table: ps_orders
-Query: INSERT INTO `test_new`.`ps_orders` (`id_order`, `reference`, `id_shop_group`, `id_shop`, `id_carrier`, `id_lang`, `id_customer`, `id_cart`, `id_currency`, `id_address_delivery`, `id_address_invoice`, `current_state`, `secure_key`, `payment`, `conversion_rate`, `module`, `recyclable`, `gift`, `gift_message`, `mobile_theme`, `shipping_number`, `total_discounts`, `total_discounts_tax_incl`, `total_discounts_tax_excl`, `total_paid`, `total_paid_tax_incl`, `total_paid_tax_excl`, `total_paid_real`, `total_products`, `total_products_wt`, `total_shipping`, `total_shipping_tax_incl`, `total_shipping_tax_excl`, `carrier_tax_rate`, `total_wrapping`, `total_wrapping_tax_incl`, `total_wrapping_tax_excl`, `round_mode`, `round_type`, `invoice_number`, `delivery_number`, `invoice_date`, `delivery_date`, `valid`, `date_add`, `date_upd`) VALUES (5, KHWLILZLL, 1, 1, 2, 1, 2, 5, 1, 5, 5, 10, b44a6d9efd7a0076a0fbce6b15eaf3b1, Bank wire, 1.000000, ps_wirepayment, 0, 0, , 0, , 0.000000, 0.000000, 0.000000, 20.900000, 20.900000, 20.900000, 0.000000, 18.900000, 18.900000, 2.000000, 2.000000, 2.000000, 0.000, 0.000000, 0.000000, 0.000000, 0, 0, 0, 0, , , 0, 2024-07-08 11:10:45, 2024-07-08 11:10:46);
-
-Exeption: Column 'invoice_date' cannot be null;
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
 
 
 _____________________________________________________________________________________________________
-Table: ps_specific_price
-Query: INSERT INTO `test_new`.`ps_specific_price` (`id_specific_price`, `id_specific_price_rule`, `id_cart`, `id_product`, `id_shop`, `id_shop_group`, `id_currency`, `id_country`, `id_group`, `id_customer`, `id_product_attribute`, `price`, `from_quantity`, `reduction`, `reduction_tax`, `reduction_type`, `from`, `to`) VALUES (1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, -1.000000, 1, 0.200000, 1, percentage, , );
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (4, Hamza Benjilali, cbr-fs@hotmail.com, Hamza Benjilali cbr-fs@hotmail.com, Hamza, Benjilali);
 
-Exeption: Column 'from' cannot be null;
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
 
 
 _____________________________________________________________________________________________________
-Table: ps_specific_price
-Query: INSERT INTO `test_new`.`ps_specific_price` (`id_specific_price`, `id_specific_price_rule`, `id_cart`, `id_product`, `id_shop`, `id_shop_group`, `id_currency`, `id_country`, `id_group`, `id_customer`, `id_product_attribute`, `price`, `from_quantity`, `reduction`, `reduction_tax`, `reduction_type`, `from`, `to`) VALUES (2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, -1.000000, 1, 0.200000, 1, percentage, , );
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (5, Audrey tourneur, snipgirl77@dbmail.com, Audrey tourneur snipgirl77@dbmail.com, Audrey, tourneur);
 
-Exeption: Column 'from' cannot be null;
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (6, damien marx, marx.damien@gmail.com, damien marx marx.damien@gmail.com, damien, marx);
+
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (7, Jean-Michel Guestin, jm.guestin@gmail.com, Jean-Michel Guestin jm.guestin@gmail.com, Jean-Michel, Guestin);
+
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (8, Fabien reynaud, fabreynaud@yahoo.fr, Fabien reynaud fabreynaud@yahoo.fr, Fabien, reynaud);
+
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (9, Habib KARAMOKO, subzeroal@hotmail.com, Habib KARAMOKO subzeroal@hotmail.com, Habib, KARAMOKO);
+
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_customer_search_kerawen
+Query: INSERT INTO `test_new`.`ps_customer_search_kerawen` (`id`, `info`, `full`, `firstname`, `lastname`) VALUES (10, Fabien bardary, f.bardary2@gmail.com, Fabien bardary f.bardary2@gmail.com, Fabien, bardary);
+
+Exception: The user specified as a definer ('avdb_moto'@'127.0.0.1') does not exist;
+
+
+_____________________________________________________________________________________________________
+Table: ps_product_search_kerawen
+Query: INSERT INTO `test_new`.`ps_product_search_kerawen` (`id_product`, `id_shop`, `id_lang`, `data`) VALUES (1, 1, 1, 1);
+
+Exception: The target table ps_product_search_kerawen of the INSERT is not insertable-into;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (1, 153956, 39.00, 39.00, , 258290162, 1002506131, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 04:46:08);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (2, 153957, 54.00, 54.00, , 258292312, 1002508999, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 05:50:42);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (3, 153961, 65.00, 65.00, , 401492607, 1552899548, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 08:52:09);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (4, 153962, 108.00, 108.00, , 401493066, 1552899791, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 08:56:42);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (5, 153969, 142.00, 142.00, , 401514454, 1552920964, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 11:05:30);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (6, 153977, 100.00, 100.00, , 401528212, 1552934163, 1, CB, 1, 1970-01-01 00:00:00, 2021-06-18 12:28:59);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (7, 153978, 878.00, 878.00, , 258361685, 1002585410, 1, Mastercard, 1, 1970-01-01 00:00:00, 2021-06-18 12:38:13);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (8, 153979, 72.00, 72.00, , 401530912, 1552936927, 1, Visa Electron, 1, 1970-01-01 00:00:00, 2021-06-18 12:50:51);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (9, 153981, 153.00, 153.00, , 401531939, 1552937748, 1, Visa, 1, 1970-01-01 00:00:00, 2021-06-18 12:59:59);
+
+Exception: Field 'id_cart' doesn't have a default value;
+
+
+_____________________________________________________________________________________________________
+Table: ps_up2pay_transaction
+Query: INSERT INTO `test_new`.`ps_up2pay_transaction` (`id_up2pay_transaction`, `id_order`, `amount`, `amount_captured`, `auth_numtrans`, `numtrans`, `numappel`, `guarantee_3ds`, `card_type`, `captured`, `date_capture`, `date_add`) VALUES (10, 153983, 73.00, 73.00, , 401533230, 1552939092, 1, Visa, 1, 1970-01-01 00:00:00, 2021-06-18 13:11:18);
+
+Exception: Field 'id_cart' doesn't have a default value;
 
 
 _____________________________________________________________________________________________________
