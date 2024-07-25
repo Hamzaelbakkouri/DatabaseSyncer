@@ -1,4 +1,5 @@
 <?php
+# sket chwiya 🪄
 
 class DatabaseSyncer
 {
@@ -20,11 +21,17 @@ class DatabaseSyncer
     private $relatedTablesToHandle;
     private $relatedTables;
     private $test_duration_rows;
-    private $totalTables;
-    private $processedTables;
+    private $rowNum;
+    private $totalRows;
+    private $processedRows;
     private $startTime;
     private $lastUpdateTime;
-    private $lastProcessedTables = 0;
+    private $allRowsDuration;
+    private $time_pre;
+    private $end_time;
+    private $columsMissedInDB1;
+    private $columsMissedInDB2;
+    private $defaultValues;
 
     /**
      * The DatabaseSyncer constructor
@@ -191,8 +198,91 @@ class DatabaseSyncer
         $this->errorPlaces = [];
         $this->catchQueries = [];
         $this->test_duration_rows = 0;
-        $this->totalTables = 0;
-        $this->processedTables = 0;
+        $this->totalRows = 0;
+        $this->processedRows = 0;
+        $this->rowNum = 0;
+        $this->allRowsDuration = 0;
+        $this->columsMissedInDB1 = [
+            "ps_category" => ["referenceallshop",    "referencerspro",    "refrenceavdb"],
+            "ps_category_lang" => ["additional_description"],
+            "ps_customer_message" => ["allfile_name"],
+            "ps_customer_session" => [
+                "date_add",
+                "date_upd"
+            ],
+            "ps_employee" => ["has_enabled_gravatar"],
+            "ps_employee_session" => [
+                "date_add",
+                "date_upd"
+            ],
+            "ps_group" => ["regletaxe"],
+            "ps_hook" => ["active"],
+            "ps_layered_category" => ["controller"],
+            "ps_link_block_shop" => ["position"],
+            "ps_log" => ["id_lang", "id_shop", "id_shop_group", "in_all_shops"],
+            "ps_order_payment" => ["id_employee"],
+            "ps_orders" => ["note"],
+            "ps_product" => [
+                "colors",
+                "notes",
+                "product_type",
+                "unit_price"
+            ],
+            "ps_product_shop" => "unit_price",
+            "ps_pscheckout_cart" => "environment",
+            "ps_shop" => "color",
+            "ps_shop_group" => "color",
+            "ps_tab" => ["wording", "wording_domain"],
+            "ps_up2pay_transaction" => ["id_cart", "ipn"],
+            "ps_warehouse" => ["active"],
+            "ps_wishlist" => ["is_default"],
+        ];
+        $this->columsMissedInDB2 = [
+            "ps_carrier" => "id_tax_rules_group",
+            "ps_psreassurance" => "id_shop",
+            "ps_psreassurance_lang" => "id_shop",
+            "ps_tab" => "hide_host_mode"
+        ];
+        $this->defaultValues =
+            [
+                "datetime" => "1970-01-01 00:00:00",
+                "date" => "1970-01-01",
+                "int" => 0,
+                "float" => 0.0,
+                "varchar" => "",
+                "text" => "",
+                "tinyint" => 0,
+                "smallint" => 0,
+                "mediumint" => 0,
+                "bigint" => 0,
+                "decimal" => 0.0,
+                "double" => 0.0,
+                "char" => "",
+                "enum" => "",
+                "set" => "",
+                "timestamp" => "1970-01-01 00:00:00",
+                "time" => "00:00:00",
+                "year" => "1970",
+                "bit" => 0,
+                "binary" => "",
+                "varbinary" => "",
+                "tinyblob" => "",
+                "mediumblob" => "",
+                "longblob" => "",
+                "blob" => "",
+                "tinytext" => "",
+                "mediumtext" => "",
+                "longtext" => "",
+                "json" => "",
+                "geometry" => "",
+                "point" => "",
+                "linestring" => "",
+                "polygon" => "",
+                "multipoint" => "",
+                "multilinestring" => "",
+                "multipolygon" => "",
+                "geometrycollection" => ""
+            ];
 
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -217,10 +307,10 @@ class DatabaseSyncer
             $this->connect();
             $this->fetchColumnInformation();
             $this->compareSchemas();
-            $this->totalTables = count($this->db1Columns) - count($this->tablesIgnore);
+            $this->totalRows = $this->countTotalRows();
             $this->syncTables();
-            !empty($this->failedTables) && $this->reSyncFailedTables();
-            !empty($this->relatedTables) && $this->reSyncRelatedTables();
+            $this->reSyncRelatedTables();
+            $this->reSyncFailedTables();
             $this->printResults();
             $this->showFailedTables();
 
@@ -232,7 +322,6 @@ class DatabaseSyncer
         } catch (Exception $e) {
             echo 'Error: ' . $e->getMessage();
         }
-
     }
 
     /**
@@ -259,6 +348,24 @@ class DatabaseSyncer
 
         $this->db1Columns = $this->convertToAssociativeArray($columns1);
         $this->db2Columns = $this->convertToAssociativeArray($columns2);
+    }
+
+    /**
+     * Count total rows in the source database
+     *
+     * @return number
+     */
+    private function countTotalRows()
+    {
+        $total = 0;
+        foreach ($this->db1Columns as $tableName => $columns) {
+            if (!in_array($tableName, $this->tablesIgnore) && !in_array($tableName, $this->relatedTables)) {
+                $stmt = $this->bdd1->prepare("SELECT COUNT(*) FROM `$tableName`");
+                $stmt->execute();
+                $total += $stmt->fetchColumn();
+            }
+        }
+        return $total + count($this->relatedTablesToHandle);
     }
 
     /**
@@ -303,24 +410,19 @@ class DatabaseSyncer
      */
     private function compareTable($tableName, $columns)
     {
-        // var_dump($columns);
-        // die;
         if (!isset($this->db2Columns[$tableName])) {
             $this->createTable($tableName);
-            // var_dump($tableName);
-            // die;
         } else {
             foreach ($columns as $columnName => $columnType) {
                 if (!isset($this->db2Columns[$tableName][$columnName])) {
-                    // ksgefe
-                    // $this->results[] = "Column $columnName added to table $tableName in Database 2 and data copied";
-
+                    echo "this column must be handled manually\n";
                 } elseif ($this->db2Columns[$tableName][$columnName] != $columnType) {
                     $this->exceptions[$this->db2Columns[$tableName][$columnName]] = "table => $tableName column => $columnName type problem";
                 }
             }
         }
     }
+
 
     /**
      * skip adding column to table when the column is shared between tables
@@ -376,12 +478,11 @@ class DatabaseSyncer
             return $this->createView($tableName);
         }
 
-        // Get the CREATE TABLE statement from the source database
         $showCreateStmt = $this->bdd1->prepare("SHOW CREATE TABLE `$tableName`");
         $showCreateStmt->execute();
         $createTableSql = $showCreateStmt->fetchColumn(1);
 
-        // Modify the CREATE TABLE statement to fix invalid default values
+
         $createTableSql = preg_replace(
             [
                 "/DEFAULT '0000-00-00 00:00:00'/i",
@@ -459,10 +560,11 @@ class DatabaseSyncer
      */
     private function syncTables()
     {
-        foreach ($this->db1Columns as $tableName => $columns) {
-            if (!in_array($tableName, $this->tablesIgnore)) {
-                if (array_key_exists($tableName, $this->relatedTables)) {
+        $this->time_pre = microtime(true);
 
+        foreach ($this->db1Columns as $tableName => $columns) {
+            if (!in_array($tableName, $this->tablesIgnore) && !in_array($tableName, $this->relatedTables)) {
+                if (array_key_exists($tableName, $this->relatedTables)) {
                     $isExist = $this->tableExist($this->bdd2, $this->relatedTables[$tableName]);
                     if (!$isExist) {
                         $this->createTable($this->relatedTables[$tableName]);
@@ -473,53 +575,11 @@ class DatabaseSyncer
                     $this->syncTable($tableName);
                 }
                 $this->syncTable($tableName);
-                $this->processedTables++;
-                $this->displayProgress();
-                $this->lastProcessedTables = $this->processedTables;
             } else {
-                echo "\e[1;37;41m" . $tableName . " not inserted because its depends directly on the project \e[0m\n";
+                if ($this->DEBUG_MODE) echo "\n\e[1;37;41m" . $tableName . " not inserted because its depends directly on the project \e[0m\n";
             }
         }
     }
-
-    private function displayProgress()
-{
-    $currentTime = microtime(true);
-    $progress = min(($this->processedTables / max($this->totalTables, 1)) * 100, 100);
-    $estimatedTimeRemaining = $this->estimateRemainingTime($currentTime);
-    
-    echo sprintf("\rProgress: %.2f%% - Estimated time remaining: %s", 
-        $progress, 
-        $estimatedTimeRemaining
-    );
-    
-    $this->lastUpdateTime = $currentTime;
-}
-
-private function estimateRemainingTime($currentTime)
-{
-    if ($this->processedTables == 0) {
-        return "Calculating...";
-    }
-
-    $elapsedTime = $currentTime - $this->startTime;
-    $timePerTable = $elapsedTime / $this->processedTables;
-    $remainingTables = max($this->totalTables - $this->processedTables, 0);
-    $remainingTime = $timePerTable * $remainingTables;
-
-    // Adjust estimation based on recent progress
-    $recentTimePerTable = ($currentTime - $this->lastUpdateTime) / max(1, $this->processedTables - $this->lastProcessedTables);
-    $adjustedRemainingTime = max(($remainingTime + $recentTimePerTable * $remainingTables) / 2, 0);
-    
-    if ($adjustedRemainingTime < 60) {
-        return sprintf("%.0f seconds", $adjustedRemainingTime);
-    } elseif ($adjustedRemainingTime < 3600) {
-        return sprintf("%.1f minutes", $adjustedRemainingTime / 60);
-    } else {
-        return sprintf("%.1f hours", $adjustedRemainingTime / 3600);
-    }
-}
-
 
     /**
      * Synchronizes a single table between databases
@@ -543,17 +603,50 @@ private function estimateRemainingTime($currentTime)
             $truncateQuery = "TRUNCATE TABLE `$this->dbname2`.`$tableName`";
             $this->bdd2->query($truncateQuery);
 
-
             $columnsToInsert = $this->getColumnsToInsert($tableName);
+
             $columnList = $this->getColumnList($columnsToInsert);
+
             $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
             $selectQuery = $this->bdd1->query("SELECT $columnList FROM `$this->dbname1`.`$tableName`");
-            $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList) VALUES ($placeholders)");
+
+            // if ($tableName == "ps_shop_group") {
+            //     $columnsToInsert = $this->getColumnsToInsert($tableName);
+            //     $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
+            //     $columnList = $this->getColumnList($columnsToInsert);
+            // }
+
+            $missedColumns = $this->giveValuesForNewColumns($tableName);
+            $newColumns = "";
+            $newValue = "";
+            strlen($missedColumns['cols']) > 1 && $newColumns = ", " . $missedColumns['cols'];
+            strlen($missedColumns['values']) > 1 && $newValue = ", " . $missedColumns['values'];
+            // if ($tableName == "ps_category") {
+            //     var_dump($columnList . $newColumns);
+            //     var_dump($placeholders . $newValue);
+            //     die;
+            // }
+            $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList $newColumns) VALUES ($placeholders $newValue)");
+
+            // var_dump($insertStmt);
+            // die;
 
             while ($row = $selectQuery->fetch(PDO::FETCH_ASSOC)) {
+                $this->rowNum++;
                 $this->handleDateProblem($row);
-                $sqlUnbinded = $this->getSqlUnbinded($tableName, $columnList, $row);
+                $allString = $columnList . $newColumns;
+                $sqlUnbinded = $this->getSqlUnbinded($tableName, $allString, $row);
                 $totalFailed += $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
+
+                if ($this->rowNum >= 5) {
+                    $this->end_time = microtime(true) - $this->time_pre;
+                    $this->test_duration_rows = $this->end_time;
+                    $this->processedRows++;
+                    $this->displayProgress();
+                } else {
+                    system('clear');
+                    echo "waiting ...";
+                }
             }
 
             if ($this->DEBUG_MODE) echo "\e[1;37;42m Inserted row in table $tableName\e[0m\n";
@@ -561,9 +654,116 @@ private function estimateRemainingTime($currentTime)
             $this->ErrorPlaces($tableName, $totalFailed);
         } catch (PDOException $e) {
             echo "\n\e[1;37;41mError syncing table $tableName: " . $e->getMessage() . "\e[0m\n";
-            // db ghadi tskipa
+            // table will be skipped
             array_push($this->failedTables, $tableName);
             return;
+        }
+    }
+
+    /**
+     * function to give values for new columns in the target database table and put the default values from each column type 
+     *
+     * @param  mixed $tableName
+     * @return array
+     */
+    private function giveValuesForNewColumns($tableName)
+    {
+        $arrayDiff = array_diff($this->db2Columns[$tableName], $this->db1Columns[$tableName]);
+        $allo =  array_intersect($arrayDiff, $this->db2Columns[$tableName]);
+        $newValues = [];
+
+        foreach (array_keys($allo) as $value) {
+
+            $val = $this->bdd2->query("SELECT DATA_TYPE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+            $IS_NULLABLE = $this->bdd2->query("SELECT IS_NULLABLE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+            $DefaultColumn = $this->bdd2->query("SELECT COLUMN_DEFAULT FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+
+            // if ($tableName == "ps_category") {
+            //     var_dump($val);
+            //     var_dump($IS_NULLABLE);
+            //     var_dump($DefaultColumn);
+            //     die;
+            // }
+
+            if ($IS_NULLABLE == "NO" && $DefaultColumn == null) {
+                if ($tableName == "ps_customer_session") {
+                    array_push($newValues, $this->defaultValues[$val]);
+                }
+            }
+            echo "\nhave no default value\n";
+        }
+        if ($tableName == "ps_category") {
+            var_dump($newValues);
+        }
+
+        $newCols = $this->getColumnList(array_keys($allo));
+        $newValuesString = $this->getValuesList($newValues);
+        return ["cols" => $newCols, "values" => $newValuesString];
+    }
+
+    // /**
+    //  * update the default value of a column in a table in the target database
+    //  *
+    //  * @param  mixed $table
+    //  * @param  mixed $column
+    //  * @param  mixed $newDefaultValue
+    //  * @return void
+    //  */
+    // private function updateDefaultValue_Column($table, $column, $newDefaultValue)
+    // {
+    //     $query = "ALTER TABLE `$table` CHANGE `$column` `$column` $newDefaultValue";
+    //     $this->bdd2->query($query);
+    // }
+
+    /**
+     * Display the progress of the synchronization
+     *
+     * @return void
+     */
+    private function displayProgress()
+    {
+        $estimatedTimeRemaining = $this->estimateRemainingTime();
+        $progress = min(($this->processedRows / $this->totalRows) * 100, 100);
+
+        system('clear');
+        echo sprintf(
+            "\r⏱️  Progress: %.2f%% - Processed rows: %d/%d - Estimated time remaining: %s",
+            $progress,
+            $this->processedRows,
+            $this->totalRows,
+            $progress == 100 ? "Completed" : $this->formatTime($estimatedTimeRemaining)
+        );
+    }
+
+    /**
+     * Estimate the remaining time of the synchronization
+     *
+     * @return number
+     */
+    private function estimateRemainingTime()
+    {
+        $estimatedTimeRemaining = $this->totalRows * $this->test_duration_rows / $this->processedRows;
+        return round(abs($estimatedTimeRemaining), 2);
+    }
+
+    /**
+     * Format the time in seconds to a good readable format
+     *
+     * @param  mixed $seconds
+     * @return string
+     */
+    private function formatTime($seconds)
+    {
+        if ($seconds < 60) {
+            return round($seconds, 2) . ' seconds';
+        } elseif ($seconds < 3600) {
+            $minutes = floor($seconds / 60);
+            $remainingSeconds = $seconds % 60;
+            return sprintf('%d minutes and %.2f seconds', $minutes, $remainingSeconds);
+        } else {
+            $hours = floor($seconds / 3600);
+            $remainingMinutes = ($seconds % 3600) / 60;
+            return sprintf('%d hours and %.2f minutes', $hours, $remainingMinutes);
         }
     }
 
@@ -587,9 +787,11 @@ private function estimateRemainingTime($currentTime)
      */
     private function reSyncRelatedTables()
     {
-        foreach ($this->relatedTablesToHandle as $name) {
+        echo "re_sync Related Tables...\n";
+        foreach ($this->relatedTables as $name) {
             $this->compareTable($name, $this->db1Columns[$name]);
         }
+        echo "done✅";
         $this->relatedTablesToHandle = [];
     }
 
@@ -626,6 +828,17 @@ private function estimateRemainingTime($currentTime)
         return implode(', ', array_map(function ($col) {
             return "`$col`";
         }, $columnsToInsert));
+    }
+
+
+
+    private function getValuesList($valuesToInsert)
+    {
+        // !empty($valuesToInsert) && var_dump($valuesToInsert);
+        // !empty($valuesToInsert) && die;
+        return implode(', ', array_map(function ($col) {
+            return "'$col'";
+        }, $valuesToInsert));
     }
 
     /**
@@ -670,11 +883,22 @@ private function estimateRemainingTime($currentTime)
     private function insertRow($insertStmt, $row, $tableName, $sqlUnbinded)
     {
         try {
+            // $tableName == "ps_category" && var_dump($row);
+            // $tableName == "ps_category" && die;
             // array_intersect_key compare the keys of two arrays and returns the matches
             // array_flip flips the keys and values of an array
             $valuesToInsert = array_intersect_key($row, array_flip($this->getColumnsToInsert($tableName)));
             $isInserted = $insertStmt->execute(array_values($valuesToInsert));
+            // if ($tableName == "ps_customer_session" || $tableName == "ps_shop_group") {
+            // var_dump(array_values($valuesToInsert));
+            // var_dump($insertStmt->execute(array_values($valuesToInsert)));
+            // die;
+            // }
             if (!$isInserted) {
+                // die($insertStmt->errorInfo());
+                // var_dump($insertStmt->queryString);
+                // var_dump(array_values($valuesToInsert));
+                // die;
                 if ($this->handleProblemInstantinously) {
                     return $this->handleInsertionProblem($tableName, $sqlUnbinded);
                 } else {
@@ -690,7 +914,7 @@ private function estimateRemainingTime($currentTime)
         return 0;
     }
 
-    /**
+    /** 
      * Handles insertion problems interactively
      * 
      * @param string $tableName Name of the table
@@ -760,9 +984,25 @@ private function estimateRemainingTime($currentTime)
      */
     private function handleCatchedQueries()
     {
-        echo "\n1- create file for catched queries ,else to skip: \n\n";
-        $v = trim(fgets(STDIN));
-        if ($v == 1) {
+        if ($this->DEBUG_MODE) {
+            echo "\n1- create file for catched queries ,else to skip: \n\n";
+            $v = trim(fgets(STDIN));
+            if ($v == 1) {
+                if (!empty($this->catchQueries)) {
+                    $output = '';
+                    foreach ($this->catchQueries as $query) {
+                        $output .= "Table: " . $query["table"] . "\n";
+                        $output .= "Query: " . $query["query"] . ";\n\n";
+                        $output .= "Exception: " . ($query["exception"] ?? '') . ";\n\n";
+                        $output .= "\n_____________________________________________________________________________________________________\n";
+                    }
+                    file_put_contents("queriesCached.txt", $output);
+                    echo "Queries have been saved to queriesCached.txt\n";
+                } else {
+                    echo "No queries to save.\n";
+                }
+            }
+        } else {
             if (!empty($this->catchQueries)) {
                 $output = '';
                 foreach ($this->catchQueries as $query) {
@@ -797,5 +1037,5 @@ private function estimateRemainingTime($currentTime)
     }
 }
 
-$syncer = new DatabaseSyncer('avdb_8', 'newpresta_8', false, false);
+$syncer = new DatabaseSyncer('avdb_7', 'avdb_8_2', false, false);
 $syncer->syncDatabases();
