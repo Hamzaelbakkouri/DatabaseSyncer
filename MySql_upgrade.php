@@ -32,6 +32,7 @@ class DatabaseSyncer
     private $columsMissedInDB1;
     private $columsMissedInDB2;
     private $defaultValues;
+    private $columnValuesIgnored;
 
     /**
      * The DatabaseSyncer constructor
@@ -284,6 +285,11 @@ class DatabaseSyncer
                 "geometrycollection" => ""
             ];
 
+        $this->columnValuesIgnored =
+            [
+                "ps_psreassurance_lang" => ["column" => "id_shop", "value" => 0]
+            ];
+
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
     }
@@ -482,7 +488,6 @@ class DatabaseSyncer
         $showCreateStmt->execute();
         $createTableSql = $showCreateStmt->fetchColumn(1);
 
-
         $createTableSql = preg_replace(
             [
                 "/DEFAULT '0000-00-00 00:00:00'/i",
@@ -569,7 +574,6 @@ class DatabaseSyncer
                     if (!$isExist) {
                         $this->createTable($this->relatedTables[$tableName]);
                         $this->syncTable($this->relatedTables[$tableName]);
-                        array_push($this->relatedTablesToHandle, $tableName);
                         continue;
                     }
                     $this->syncTable($tableName);
@@ -610,32 +614,28 @@ class DatabaseSyncer
             $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
             $selectQuery = $this->bdd1->query("SELECT $columnList FROM `$this->dbname1`.`$tableName`");
 
-            // if ($tableName == "ps_shop_group") {
-            //     $columnsToInsert = $this->getColumnsToInsert($tableName);
-            //     $placeholders = implode(', ', array_fill(0, count($columnsToInsert), '?'));
-            //     $columnList = $this->getColumnList($columnsToInsert);
-            // }
 
             $missedColumns = $this->giveValuesForNewColumns($tableName);
+
             $newColumns = "";
             $newValue = "";
-            strlen($missedColumns['cols']) > 1 && $newColumns = ", " . $missedColumns['cols'];
-            strlen($missedColumns['values']) > 1 && $newValue = ", " . $missedColumns['values'];
-            // if ($tableName == "ps_category") {
-            //     var_dump($columnList . $newColumns);
-            //     var_dump($placeholders . $newValue);
-            //     die;
-            // }
+            strlen($missedColumns['cols']) > 1 && $newColumns = $missedColumns['cols'];
+            strlen($missedColumns['values']) > 1 && $newValue = $missedColumns['values'];
+
             $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList $newColumns) VALUES ($placeholders $newValue)");
-
-            // var_dump($insertStmt);
-            // die;
-
             while ($row = $selectQuery->fetch(PDO::FETCH_ASSOC)) {
                 $this->rowNum++;
                 $this->handleDateProblem($row);
                 $allString = $columnList . $newColumns;
                 $sqlUnbinded = $this->getSqlUnbinded($tableName, $allString, $row);
+                if (in_array($tableName, array_keys($this->columnValuesIgnored))) {
+                    foreach ($this->db1Columns[$tableName] as $key => $value) {
+                        if ($key == $this->columnValuesIgnored[$tableName]["column"] && $row[$key] == $this->columnValuesIgnored[$tableName]["value"]) {
+                            continue 2;
+                        }
+                    }
+                }
+
                 $totalFailed += $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
 
                 if ($this->rowNum >= 5) {
@@ -655,7 +655,6 @@ class DatabaseSyncer
         } catch (PDOException $e) {
             echo "\n\e[1;37;41mError syncing table $tableName: " . $e->getMessage() . "\e[0m\n";
             // table will be skipped
-            array_push($this->failedTables, $tableName);
             return;
         }
     }
@@ -668,37 +667,33 @@ class DatabaseSyncer
      */
     private function giveValuesForNewColumns($tableName)
     {
-        $arrayDiff = array_diff($this->db2Columns[$tableName], $this->db1Columns[$tableName]);
-        $allo =  array_intersect($arrayDiff, $this->db2Columns[$tableName]);
+        $arrayDiff = array_diff(array_keys($this->db2Columns[$tableName]), array_keys($this->db1Columns[$tableName]));
+        $allo = array_intersect($arrayDiff, array_keys($this->db2Columns[$tableName]));
+        // fach size dial l column kaykon mkhtalef 3la lakhor kayduplika dakchiii !!!!
+
+        $newColumns = [];
         $newValues = [];
-
-        foreach (array_keys($allo) as $value) {
-
+        foreach (array_values($allo) as $value) {
             $val = $this->bdd2->query("SELECT DATA_TYPE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
             $IS_NULLABLE = $this->bdd2->query("SELECT IS_NULLABLE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
-            $DefaultColumn = $this->bdd2->query("SELECT COLUMN_DEFAULT FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+            $DefaultColumnValue = $this->bdd2->query("SELECT COLUMN_DEFAULT FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
 
-            // if ($tableName == "ps_category") {
-            //     var_dump($val);
-            //     var_dump($IS_NULLABLE);
-            //     var_dump($DefaultColumn);
-            //     die;
-            // }
-
-            if ($IS_NULLABLE == "NO" && $DefaultColumn == null) {
-                if ($tableName == "ps_customer_session") {
-                    array_push($newValues, $this->defaultValues[$val]);
-                }
+            if ($DefaultColumnValue == null && $IS_NULLABLE == "NO") {
+                array_push($newValues, $this->defaultValues[$val]);
+                array_push($newColumns, $value);
+                echo "\nhave no default value\n";
+            } else {
+                echo "\nhave default value\n";
             }
-            echo "\nhave no default value\n";
-        }
-        if ($tableName == "ps_category") {
-            var_dump($newValues);
         }
 
-        $newCols = $this->getColumnList(array_keys($allo));
-        $newValuesString = $this->getValuesList($newValues);
-        return ["cols" => $newCols, "values" => $newValuesString];
+        if (!empty($newValues)) {
+            $newCols = $this->getColumnList($newColumns);
+            $newValuesString = $this->getValuesList($newValues);
+            return ["cols" => ", " . $newCols, "values" => ", " .  $newValuesString];
+        } else {
+            return ["cols" => "", "values" => ""];
+        }
     }
 
     // /**
@@ -787,12 +782,12 @@ class DatabaseSyncer
      */
     private function reSyncRelatedTables()
     {
-        echo "re_sync Related Tables...\n";
+        echo "\nre_sync Related Tables...\n";
         foreach ($this->relatedTables as $name) {
             $this->compareTable($name, $this->db1Columns[$name]);
         }
         echo "done✅";
-        $this->relatedTablesToHandle = [];
+        $this->relatedTables = [];
     }
 
     /**
@@ -829,8 +824,6 @@ class DatabaseSyncer
             return "`$col`";
         }, $columnsToInsert));
     }
-
-
 
     private function getValuesList($valuesToInsert)
     {
@@ -883,22 +876,12 @@ class DatabaseSyncer
     private function insertRow($insertStmt, $row, $tableName, $sqlUnbinded)
     {
         try {
-            // $tableName == "ps_category" && var_dump($row);
-            // $tableName == "ps_category" && die;
             // array_intersect_key compare the keys of two arrays and returns the matches
             // array_flip flips the keys and values of an array
             $valuesToInsert = array_intersect_key($row, array_flip($this->getColumnsToInsert($tableName)));
             $isInserted = $insertStmt->execute(array_values($valuesToInsert));
-            // if ($tableName == "ps_customer_session" || $tableName == "ps_shop_group") {
-            // var_dump(array_values($valuesToInsert));
-            // var_dump($insertStmt->execute(array_values($valuesToInsert)));
-            // die;
-            // }
+
             if (!$isInserted) {
-                // die($insertStmt->errorInfo());
-                // var_dump($insertStmt->queryString);
-                // var_dump(array_values($valuesToInsert));
-                // die;
                 if ($this->handleProblemInstantinously) {
                     return $this->handleInsertionProblem($tableName, $sqlUnbinded);
                 } else {
@@ -914,7 +897,7 @@ class DatabaseSyncer
         return 0;
     }
 
-    /** 
+    /**
      * Handles insertion problems interactively
      * 
      * @param string $tableName Name of the table
