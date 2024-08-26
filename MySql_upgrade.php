@@ -1,10 +1,14 @@
 <?php
 # sket chwiya 🪄
 
+/**
+ * DatabaseSyncer is a PHP script that synchronizes two MySQL databases by copying missing tables and columns from one database to another and copying missing data from one database to another
+ */
 class DatabaseSyncer
 {
     private $handleProblemInstantinously;
     private $DEBUG_MODE;
+    private $SECOND_PHASE;
     private $bdd1;
     private $bdd2;
     private $dbname1;
@@ -33,7 +37,15 @@ class DatabaseSyncer
     private $columsMissedInDB2;
     private $defaultValues;
     private $columnValuesIgnored;
-
+    private $rowCount;
+    private $batchs;
+    private $errorBatchs;
+    private $incrementRows;
+    private $previousTable;
+    private $largeContentTables;
+    private $ToSwitchValues;
+    private $primarykeys;
+    private $tableStats;
     /**
      * The DatabaseSyncer constructor
      *
@@ -41,9 +53,10 @@ class DatabaseSyncer
      * @param  string $dbname2
      * @param  bool $DEBUG_MODE
      * @param  bool $handleProblemInstantinously
+     * @param  bool $secondPhase
      *
      */
-    public function __construct($dbname1, $dbname2, $DEBUG_MODE = false, $handleProblemInstantinously = false)
+    public function __construct($dbname1, $dbname2, $DEBUG_MODE = false, $handleProblemInstantinously = false, $secondPhase = false)
     {
         $this->dbname1 = $dbname1;
         $this->dbname2 = $dbname2;
@@ -51,6 +64,8 @@ class DatabaseSyncer
         $this->handleProblemInstantinously = $handleProblemInstantinously;
         $this->tablesIgnore = [
             "ps_configuration",
+            "ps_connections",
+            "ps_guest",
             "ps_shop",
             "ps_shop_url",
             "brand_category",
@@ -284,11 +299,81 @@ class DatabaseSyncer
                 "multipolygon" => "",
                 "geometrycollection" => ""
             ];
-
         $this->columnValuesIgnored =
             [
-                "ps_psreassurance_lang" => ["column" => "id_shop", "value" => 0]
+                "ps_psreassurance_lang" => ["column" => "id_shop", "value" => 0],
+                // "ebay_log" => ["column" => "state", "value" => 0]
             ];
+        $this->batchs = [];
+        $this->errorBatchs = [];
+        $this->rowCount = 1000;
+        $this->incrementRows = 0;
+        $this->previousTable = 'ebay_images_romain_do_not_remove';
+        $this->SECOND_PHASE = $secondPhase;
+        $this->primarykeys = [];
+        $this->tableStats = [];
+        // $this->ToSwitchValues = [
+        //     ["table" => "ps_amazon_configuration", "column" => "id_shop_group", "request" => "''", "response" => null],
+        //     ["table" => "ps_amazon_configuration", "column" => "id_shop", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_kerawen", "column" => "delivery_date", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_kerawen", "column" => "id_address", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_kerawen", "column" => "count", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_product_kerawen", "column" => "id_tag", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_rule_kerawen", "column" => "id_cart", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_flow_kerawen", "column" => "id_payment_mode", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_flow_kerawen", "column" => "id_order_slip", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_flow_kerawen", "column" => "count", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_op_kerawen", "column" => "id_employee", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_sale_kerawen", "column" => "id_order_slip", "request" => "''", "response" => null],
+        //     ["table" => "ps_colissimo_label", "column" => "insurance", "request" => "''", "response" => null],
+        //     ["table" => "ps_configuration_kpi", "column" => "id_shop_group", "request" => "''", "response" => null],
+        //     ["table" => "ps_configuration_kpi", "column" => "id_shop", "request" => "''", "response" => null],
+        //     ["table" => "ps_configuration_lang", "column" => "date_upd", "request" => "''", "response" => null],
+        //     ["table" => "ps_configurator3d", "column" => "symetric_product", "request" => "''", "response" => null],
+        //     ["table" => "ps_customer_kerawen", "column" => "id_prepaid", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_kerawen", "column" => "quote_expiry", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_payment", "column" => "id_mode", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_sale_detail", "column" => "id_carrier", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_op_kerawen", "column" => "error", "request" => "''", "response" => null],
+        //     ["table" => "ps_employee", "column" => "optin", "request" => "''", "response" => null],
+        //     ["table" => "ps_delivery", "column" => "id_range_price", "request" => "''", "response" => null],
+        //     ["table" => "ps_image", "column" => "cover", "request" => "''", "response" => null],
+        //     ["table" => "ps_image_shop", "column" => "cover", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_discount", "column" => "discount_percent", "request" => "''", "response" => null],
+        //     ["table" => "ps_marketplace_order_items", "column" => "item_status", "request" => "''", "response" => null],
+        //     ["table" => "ps_marketplace_product_action", "column" => "id_product_attribute", "request" => "''", "response" => null],
+        //     ["table" => "ps_order_detail_kerawen", "column" => "measure", "request" => "''", "response" => null],
+        //     ["table" => "ps_order_kerawen", "column" => "display_date", "request" => "''", "response" => null],
+        //     ["table" => "ps_order_kerawen", "column" => "quote_number", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_invoice", "column" => "invoice_date", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_payment", "column" => "remain", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_kerawen", "column" => "quote_number", "request" => "''", "response" => null],
+        //     ["table" => "ps_cart_rule_kerawen", "column" => "id_product", "request" => "''", "response" => null],
+        //     ["table" => "ps_cashdrawer_flow_kerawen", "column" => "id_credit", "request" => "''", "response" => null],
+        //     ["table" => "ps_employee", "column" => "last_connection_date", "request" => "''", "response" => null],
+        //     ["table" => "ps_ganalytics", "column" => "refund_sent", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_event", "column" => "id_operator", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_payment", "column" => "deferred", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_sale_detail", "column" => "wrapping", "request" => "''", "response" => null],
+        //     ["table" => "ps_kerawen_525_till_check", "column" => "id_currency", "request" => "''", "response" => null],
+        //     ["table" => "ps_marketplace_order_items", "column" => "id_order_detail", "request" => "''", "response" => null],
+        //     ["table" => "ps_marketplace_product_action", "column" => "date_upd", "request" => "''", "response" => null],
+        //     ["table" => "ps_of_shipping_rule", "column" => "date_from", "request" => "''", "response" => null],
+        //     ["table" => "ps_order_detail_kerawen", "column" => "precision", "request" => "''", "response" => null],
+        //     ["table" => "ps_order_kerawen", "column" => "id_till", "request" => "''", "response" => null],
+        //     ["table" => "ps_page", "column" => "id_object", "request" => "''", "response" => null],
+        //     ["table" => "ps_posmegamenu_submenu", "column" => "submenu_width", "request" => "''", "response" => null],
+        //     ["table" => "ps_product", "column" => "low_stock_threshold", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_attribute", "column" => "low_stock_threshold", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_attribute", "column" => "default_on", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_attribute_kerawen", "column" => "measure", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_attribute_shop", "column" => "low_stock_threshold", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_attribute_shop", "column" => "default_on", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_shop", "column" => "low_stock_threshold", "request" => "''", "response" => null],
+        //     ["table" => "ps_product_wm_kerawen", "column" => "unit_price", "request" => "''", "response" => null],
+        //     ["table" => "ps_pscheckout_cart", "column" => "paypal_authorization_expire", "request" => "''", "response" => null],
+        // ];
+
 
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
@@ -296,7 +381,7 @@ class DatabaseSyncer
 
     /**
      * Synchronizes databases
-     *  - Establishes database connections
+     * - Establishes database connections
      * - Fetches column information from both databases
      * - Compares schemas of both databases
      * - Synchronizes all tables between databases
@@ -318,6 +403,7 @@ class DatabaseSyncer
             $this->reSyncRelatedTables();
             $this->reSyncFailedTables();
             $this->printResults();
+            $this->handleTableStats();
             $this->showFailedTables();
 
             $time_post = microtime(true);
@@ -348,8 +434,6 @@ class DatabaseSyncer
         $columnsQuery2 = $this->bdd2->query("SELECT TABLE_NAME, COLUMN_NAME, COLUMN_TYPE, ORDINAL_POSITION FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" . $this->dbname2 . "' ORDER BY TABLE_NAME, ORDINAL_POSITION;");
 
         $columns1 = $columnsQuery1->fetchAll(PDO::FETCH_ASSOC);
-        // var_dump($columns1);
-        // die;
         $columns2 = $columnsQuery2->fetchAll(PDO::FETCH_ASSOC);
 
         $this->db1Columns = $this->convertToAssociativeArray($columns1);
@@ -420,8 +504,20 @@ class DatabaseSyncer
             $this->createTable($tableName);
         } else {
             foreach ($columns as $columnName => $columnType) {
+                $column1 = "";
+                $column2 = "";
+                $sql = "";
+
+                if (strpos($this->db1Columns[$tableName][$columnName], "varchar") !== false) {
+                    $column1 = $this->db1Columns[$tableName][$columnName];
+                    $column2 = $this->db2Columns[$tableName][$columnName];
+                    if (!$this->isSameSize($column1, $column2)) {
+                        $this->bdd2->query("ALTER TABLE `$this->dbname2`.`$tableName` MODIFY COLUMN `$columnName` $column1");
+                    }
+                }
+
                 if (!isset($this->db2Columns[$tableName][$columnName])) {
-                    echo "this column must be handled manually\n";
+                    echo "the column " . $columnName . " must be handled manually in table : " . $tableName . "\n";
                 } elseif ($this->db2Columns[$tableName][$columnName] != $columnType) {
                     $this->exceptions[$this->db2Columns[$tableName][$columnName]] = "table => $tableName column => $columnName type problem";
                 }
@@ -429,8 +525,32 @@ class DatabaseSyncer
         }
     }
 
-
     /**
+     * function to check if the size of the column is the same in both databases
+     *
+     * @param  mixed $value1
+     * @param  mixed $value2
+     * @return bool
+     */
+    public function isSameSize($value1, $value2)
+    {
+        $value1 = strstr($value1, "(");
+        $value1 = str_replace("(", "", $value1);
+        $value1 = str_replace(")", "", $value1);
+        $value1 = intval($value1);
+
+        $value2 = strstr($value2, "(");
+        $value2 = str_replace("(", "", $value2);
+        $value2 = str_replace(")", "", $value2);
+        $value2 = intval($value2);
+
+        if ($value1 > $value2) {
+            return false;
+        }
+        return true;
+    }
+
+    /**+
      * skip adding column to table when the column is shared between tables
      *
      * @param  mixed $tableName
@@ -509,7 +629,7 @@ class DatabaseSyncer
 
     /**
      * Check if the table is a view or not
-     *
+     *  
      * @param  string $tableName
      * @return bool
      */
@@ -586,6 +706,25 @@ class DatabaseSyncer
     }
 
     /**
+     * collect primary keys of all tables
+     * @param string db
+     * @return bool
+     */
+    // public function collectPKS($db) {
+    //     $stmt = $this->bdd2->prepare("
+    //     SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE 
+    //     FROM INFORMATION_SCHEMA.COLUMNS 
+    //     WHERE TABLE_SCHEMA = $db AND COLUMN_KEY = 'PRI' 
+    //     ORDER BY TABLE_NAME
+    // ");
+
+    //     $stmt->execute();
+    //     $this->primarykeys = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    //     return !empty($this->primarykeys);
+    // }
+
+    /**
      * Synchronizes a single table between databases
      * 
      * @param string $tableName Name of the table to synchronize
@@ -594,20 +733,24 @@ class DatabaseSyncer
     {
         try {
             $totalFailed = 0;
+            $count = 0;
+
             $stmt = $this->bdd2->prepare("SELECT EXISTS (SELECT * FROM information_schema.tables WHERE table_schema = '" . $this->dbname2 . "' AND table_name = '" . $tableName . "');");
             $stmt->execute();
             if (!$stmt->fetchColumn()) {
-
                 echo "\nTable $tableName does not exist in target database. Skipping.\n";
                 // Skip to the next table
                 $this->failedTables[] = $tableName;
                 return;
             }
 
-            $truncateQuery = "TRUNCATE TABLE `$this->dbname2`.`$tableName`";
-            $this->bdd2->query($truncateQuery);
+            if (!$this->SECOND_PHASE) {
+                $truncateQuery = "TRUNCATE TABLE `$this->dbname2`.`$tableName`";
+                $this->bdd2->query($truncateQuery);
+            }
 
             $columnsToInsert = $this->getColumnsToInsert($tableName);
+
 
             $columnList = $this->getColumnList($columnsToInsert);
 
@@ -616,35 +759,59 @@ class DatabaseSyncer
 
 
             $missedColumns = $this->giveValuesForNewColumns($tableName);
+            $newColumns = [];
+            $newValue = [];
+            !empty($missedColumns['cols']) && $newColumns = $missedColumns['cols'];
+            !empty($missedColumns['values']) && $newValue = $missedColumns['values'];
 
-            $newColumns = "";
-            $newValue = "";
-            strlen($missedColumns['cols']) > 1 && $newColumns = $missedColumns['cols'];
-            strlen($missedColumns['values']) > 1 && $newValue = $missedColumns['values'];
+            $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList " . !empty($newColumns) &&  ", " . $this->getColumnList($newColumns) . ") VALUES ($placeholders " . !empty($newValue) &&  ", " . $this->getValuesList($newValue) . ")");
 
-            $insertStmt = $this->bdd2->prepare("INSERT INTO `$this->dbname2`.`$tableName` ($columnList $newColumns) VALUES ($placeholders $newValue)");
+            // map on the result of the select query to sync it in the target database
             while ($row = $selectQuery->fetch(PDO::FETCH_ASSOC)) {
-                $this->rowNum++;
-                $this->handleDateProblem($row);
-                $allString = $columnList . $newColumns;
-                $sqlUnbinded = $this->getSqlUnbinded($tableName, $allString, $row);
-                if (in_array($tableName, array_keys($this->columnValuesIgnored))) {
-                    foreach ($this->db1Columns[$tableName] as $key => $value) {
-                        if ($key == $this->columnValuesIgnored[$tableName]["column"] && $row[$key] == $this->columnValuesIgnored[$tableName]["value"]) {
-                            continue 2;
-                        }
+                if ($this->SECOND_PHASE) {
+                    $existingRow = $this->getExistingRow($tableName, $row);
+                    if ($existingRow && $this->isIdenticalData($tableName, $row, $existingRow)) {
+                        continue;
                     }
                 }
 
-                $totalFailed += $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
+                $tableName != $this->previousTable && $count = 0;
+                if (!empty($missedColumns['cols']) && !empty($missedColumns['values'])) {
+                    foreach ($newColumns as $key => $value) {
+                        $row[$value] = $newValue[$key];
+                    }
+                }
 
+                $this->rowNum++;
+                $this->handleDateProblem($row);
+                $allString = $columnList . $this->getColumnList($newColumns);
+                $sqlUnbinded = $this->getSqlUnbinded($tableName, $allString, $row);
+
+
+                if (in_array($tableName, array_keys($this->columnValuesIgnored))) {
+                    $getOneRowWithCondition = $this->bdd1->query("SELECT * FROM `$tableName` WHERE " . $this->columnValuesIgnored[$tableName]["column"] . " != " . $this->columnValuesIgnored[$tableName]["value"])->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($getOneRowWithCondition as $value) {
+                        $this->insertRow($insertStmt, $row, $tableName, $sqlUnbinded);
+                    }
+                } else {
+                    if ($tableName != $this->previousTable || $count == $this->rowCount) {
+                        $checkIsInserted = $this->rowsChunk($this->previousTable, $this->batchs);
+                        !$checkIsInserted && $this->splitChunkArray($this->previousTable, $sqlUnbinded, $totalFailed, $insertStmt);
+                        $this->batchs = [];
+                    }
+
+                    array_push($this->batchs, $row);
+                    $count++;
+                }
+
+                $tableName != $this->previousTable && $this->previousTable = $tableName;
                 if ($this->rowNum >= 5) {
                     $this->end_time = microtime(true) - $this->time_pre;
                     $this->test_duration_rows = $this->end_time;
                     $this->processedRows++;
                     $this->displayProgress();
                 } else {
-                    system('clear');
+                    // system('clear');
                     echo "waiting ...";
                 }
             }
@@ -652,7 +819,8 @@ class DatabaseSyncer
             if ($this->DEBUG_MODE) echo "\e[1;37;42m Inserted row in table $tableName\e[0m\n";
 
             $this->ErrorPlaces($tableName, $totalFailed);
-        } catch (PDOException $e) {
+            $this->checkIsDataSynced($tableName);
+        } catch (Exception $e) {
             echo "\n\e[1;37;41mError syncing table $tableName: " . $e->getMessage() . "\e[0m\n";
             // table will be skipped
             return;
@@ -660,55 +828,102 @@ class DatabaseSyncer
     }
 
     /**
-     * function to give values for new columns in the target database table and put the default values from each column type 
+     * insert row in the target database
+     *
+     * @param  mixed $tableName
+     * @param  mixed $batch
+     * @param  mixed $columnList
+     * @param  mixed $newColumns
+     * @return void
+     */
+    private function insertBatch($tableName, $batch, $columnList, $newColumns)
+    {
+        $allColumns = $columnList . (!empty($newColumns) ? ", " . $this->getColumnList($newColumns) : "");
+        $sql = $this->generateInsertStatement($tableName, $batch, $allColumns);
+
+        try {
+            $this->bdd2->exec($sql);
+        } catch (PDOException $e) {
+            echo "Error inserting batch in table $tableName: " . $e->getMessage() . "\n";
+            $this->catchQueries[] = ["table" => $tableName, "query" => $sql, "exception" => $e->getMessage()];
+        }
+    }
+
+    private function isIdenticalData($tableName, $sourceRow, $targetRow)
+    {
+        foreach ($sourceRow as $key => $value) {
+            if (isset($targetRow[$key]) && $targetRow[$key] !== $value) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * function to split the data array and try optimise the array to insert
+     *
+     * @param  mixed $tableName
+     * @param  mixed $sqlUnbinded
+     * @param  mixed $totalFailed
+     * @param  mixed $insertStmt
+     * @return void
+     */
+    private function splitChunkArray($tableName, $sqlUnbinded, $totalFailed, $insertStmt)
+    {
+        $half = count($this->batchs) / 2;
+        $firstHalf = array_slice($this->batchs, 0, $half);
+        $secondHalf = array_slice($this->batchs, $half);
+        $firstResponse = $this->rowsChunk($tableName, $firstHalf);
+        $secondResponse = $this->rowsChunk($tableName, $secondHalf);
+        if (!$firstResponse) {
+            foreach ($firstHalf as $value) {
+                $totalFailed += $this->insertRow($insertStmt, $value, $tableName, $sqlUnbinded);
+            }
+        } else if (!$secondResponse) {
+            foreach ($secondHalf as $value) {
+                $totalFailed += $this->insertRow($insertStmt, $value, $tableName, $sqlUnbinded);
+            }
+        }
+    }
+
+    /**
+     * function to give values for new columns in the target database table and put the default values from each column type
      *
      * @param  mixed $tableName
      * @return array
      */
     private function giveValuesForNewColumns($tableName)
     {
-        $arrayDiff = array_diff(array_keys($this->db2Columns[$tableName]), array_keys($this->db1Columns[$tableName]));
-        $allo = array_intersect($arrayDiff, array_keys($this->db2Columns[$tableName]));
+        $dbTwo = array_keys($this->db2Columns[$tableName]);
+        $dbOne = array_keys($this->db1Columns[$tableName]);
+        $arrayDiff = array_diff($dbTwo, $dbOne);
+        $intersect_columns = array_intersect($arrayDiff, array_keys($this->db2Columns[$tableName]));
         // fach size dial l column kaykon mkhtalef 3la lakhor kayduplika dakchiii !!!!
 
         $newColumns = [];
         $newValues = [];
-        foreach (array_values($allo) as $value) {
-            $val = $this->bdd2->query("SELECT DATA_TYPE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
-            $IS_NULLABLE = $this->bdd2->query("SELECT IS_NULLABLE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
-            $DefaultColumnValue = $this->bdd2->query("SELECT COLUMN_DEFAULT FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+        if (!empty(array_values($intersect_columns))) {
+            foreach (array_values($intersect_columns) as $value) {
+                $val = $this->bdd2->query("SELECT DATA_TYPE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+                $IS_NULLABLE = $this->bdd2->query("SELECT IS_NULLABLE FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
+                $DefaultColumnValue = $this->bdd2->query("SELECT COLUMN_DEFAULT FROM Information_Schema.Columns WHERE TABLE_NAME = '$tableName' AND COLUMN_NAME = '$value';")->fetchColumn();
 
-            if ($DefaultColumnValue == null && $IS_NULLABLE == "NO") {
-                array_push($newValues, $this->defaultValues[$val]);
-                array_push($newColumns, $value);
-                echo "\nhave no default value\n";
-            } else {
-                echo "\nhave default value\n";
+                if ($DefaultColumnValue == null && $IS_NULLABLE == "NO") {
+                    array_push($newValues, $this->defaultValues[$val]);
+                    array_push($newColumns, $value);
+                    echo "\nhave no default value\n";
+                } else {
+                    echo "\nhave default value\n";
+                }
             }
         }
 
         if (!empty($newValues)) {
-            $newCols = $this->getColumnList($newColumns);
-            $newValuesString = $this->getValuesList($newValues);
-            return ["cols" => ", " . $newCols, "values" => ", " .  $newValuesString];
+            return ["cols" => $newColumns, "values" => $newValues];
         } else {
             return ["cols" => "", "values" => ""];
         }
     }
-
-    // /**
-    //  * update the default value of a column in a table in the target database
-    //  *
-    //  * @param  mixed $table
-    //  * @param  mixed $column
-    //  * @param  mixed $newDefaultValue
-    //  * @return void
-    //  */
-    // private function updateDefaultValue_Column($table, $column, $newDefaultValue)
-    // {
-    //     $query = "ALTER TABLE `$table` CHANGE `$column` `$column` $newDefaultValue";
-    //     $this->bdd2->query($query);
-    // }
 
     /**
      * Display the progress of the synchronization
@@ -720,13 +935,12 @@ class DatabaseSyncer
         $estimatedTimeRemaining = $this->estimateRemainingTime();
         $progress = min(($this->processedRows / $this->totalRows) * 100, 100);
 
-        system('clear');
         echo sprintf(
             "\r⏱️  Progress: %.2f%% - Processed rows: %d/%d - Estimated time remaining: %s",
             $progress,
             $this->processedRows,
             $this->totalRows,
-            $progress == 100 ? "Completed" : $this->formatTime($estimatedTimeRemaining)
+            $progress == 100 ? "Completed\n" : $this->formatTime($estimatedTimeRemaining)
         );
     }
 
@@ -787,7 +1001,7 @@ class DatabaseSyncer
             $this->compareTable($name, $this->db1Columns[$name]);
         }
         echo "done✅";
-        $this->relatedTables = [];
+        $this->relatedTablesToHandle = [];
     }
 
     /**
@@ -825,6 +1039,12 @@ class DatabaseSyncer
         }, $columnsToInsert));
     }
 
+    /**
+     * Generates a comma-separated list of values
+     *
+     * @param  mixed $valuesToInsert
+     * @return string
+     */
     private function getValuesList($valuesToInsert)
     {
         // !empty($valuesToInsert) && var_dump($valuesToInsert);
@@ -865,6 +1085,36 @@ class DatabaseSyncer
     }
 
     /**
+     * Generates an insert statement for a given table and data
+     *
+     * @param  mixed $tableName
+     * @param  mixed $data
+     * @param  mixed $columnList
+     * @return string
+     */
+    private function generateInsertStatement($tableName, $data, $columnList)
+    {
+        try {
+            $values = [];
+            $idxs = [];
+            foreach ($data as $key => $row) {
+                $rowValues = array_map(function ($value) {
+                    return "'" . addslashes($value) . "'";
+                }, $row);
+
+                $values[] = '(' . implode(', ', $rowValues) . ')';
+            }
+
+            $valuesString = implode(",\n", $values);
+            $sql = "INSERT INTO $tableName ($columnList) VALUES $valuesString";
+            return $sql;
+        } catch (Exception $e) {
+            var_dump($e->getMessage());
+            die;
+        }
+    }
+
+    /**
      * Inserts a row into the target database
      * 
      * @param PDOStatement $insertStmt Prepared statement for insertion
@@ -879,22 +1129,155 @@ class DatabaseSyncer
             // array_intersect_key compare the keys of two arrays and returns the matches
             // array_flip flips the keys and values of an array
             $valuesToInsert = array_intersect_key($row, array_flip($this->getColumnsToInsert($tableName)));
-            $isInserted = $insertStmt->execute(array_values($valuesToInsert));
 
-            if (!$isInserted) {
-                if ($this->handleProblemInstantinously) {
-                    return $this->handleInsertionProblem($tableName, $sqlUnbinded);
-                } else {
-                    $sqlException = $insertStmt->errorInfo();
-                    $this->catchQueries[] = ["table" => $tableName, "query" => $sqlUnbinded, "exception" => $sqlException[2]];
-                    return 1;
+            // Check if the row already exists in the target database
+            $existingRow = $this->getExistingRow($tableName, $valuesToInsert);
+
+            if ($existingRow) {
+                // Update the existing row with the new data
+                $updatedRow = array_replace($existingRow, $valuesToInsert);
+                $isUpdated = $this->updateRow($tableName, $updatedRow, $valuesToInsert);
+                return $isUpdated ? 0 : 1;
+            } else {
+                // Insert the new row
+                $isInserted = $insertStmt->execute(array_values($valuesToInsert));
+                if (!$isInserted) {
+                    if ($this->handleProblemInstantinously) {
+                        return $this->handleInsertionProblem($tableName, $sqlUnbinded);
+                    } else {
+                        $sqlException = $insertStmt->errorInfo();
+                        $this->catchQueries[] = ["table" => $tableName, "query" => $sqlUnbinded, "exception" => $sqlException[2]];
+                        return 1;
+                    }
                 }
+                return 0;
             }
         } catch (PDOException $e) {
             echo "Error inserting row in table $tableName: " . $e->getMessage() . "\n";
             return 1;
         }
-        return 0;
+    }
+
+    /**
+     * getExistingRow
+     *
+     * @param  mixed $tableName
+     * @param  mixed $row
+     */
+    private function getExistingRow($tableName, $row)
+    {
+        $whereClause = [];
+        foreach ($row as $column => $value) {
+            $whereClause[] = "`$column` = '" . addslashes($value) . "'";
+        }
+        $whereClause = implode(' AND ', $whereClause);
+
+        $selectQuery = $this->bdd2->prepare("SELECT * FROM `$this->dbname2`.`$tableName` WHERE $whereClause LIMIT 1");
+        $selectQuery->execute();
+        return $selectQuery->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function updateRow($tableName, $updatedRow, $row)
+    {
+        $updateQuery = "UPDATE `$this->dbname2`.`$tableName` SET ";
+        $updateValues = [];
+        foreach ($updatedRow as $column => $value) {
+            $updateValues[] = "`$column` = '" . addslashes($value) . "'";
+        }
+        $updateQuery .= implode(', ', $updateValues);
+        $updateQuery .= " WHERE " . implode(' AND ', array_map(function ($col) use ($row) {
+            return "`$col` = '" . addslashes($row[$col]) . "'";
+        }, array_keys($row)));
+
+        try {
+            $this->bdd2->exec($updateQuery);
+            return true;
+        } catch (PDOException $e) {
+            echo "Error updating row in table $tableName: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    /**
+     * insert rows 1000 by 1000 to make time of execution faster
+     * @param string $tableName
+     * @param array $arrayOfData
+     * @return bool
+     */
+    private function rowsChunk($tableName, $arrayOfData)
+    {
+        try {
+            $columnList = $this->getColumnList($this->getColumnsToInsert($tableName));
+            $chunkSize = 1000;
+            $numChunks = ceil(count($arrayOfData) / $chunkSize);
+
+            for ($i = 0; $i < $numChunks; $i++) {
+                $chunk = array_slice($arrayOfData, $i * $chunkSize, $chunkSize);
+                $sql = $this->generateUpsertStatement($tableName, $chunk, $columnList);
+                $insertStmt = $this->bdd2->prepare($sql);
+                $checkIsInserted = $insertStmt->execute();
+
+                if (!$checkIsInserted) {
+                    // if($tableName == ""){
+                    $this->catchQueries[] = ["table" => $tableName, "query" => $insertStmt->queryString, "exception" => $insertStmt->errorInfo()[2]];
+                    return false;
+                    // }
+                }
+            }
+        } catch (Exception $e) {
+            echo "Error : " . $e->getMessage() . "\n";
+            return false;
+        }
+        return true;
+    }
+
+    private function generateUpsertStatement($tableName, $data, $columnList)
+    {
+        $values = [];
+        $notNullColumns = [];
+        $notNullColumns = $this->bdd2->query("SELECT COLUMN_NAME FROM Information_Schema.Columns WHERE TABLE_SCHEMA = '$this->dbname2' AND TABLE_NAME = '$tableName' AND IS_NULLABLE = 'YES';")->fetchAll(PDO::FETCH_COLUMN);
+        $cols = [];
+        foreach ($data as $row) {
+            $cols = [];
+            $rowValues = [];
+            $cols = array_keys($row);
+
+            array_walk($row, function ($value, $idx) use (&$rowValues, $notNullColumns) {
+                if (in_array($idx, $notNullColumns) && $value == '') {
+                    $rowValues[] = 'NULL';
+                } else {
+                    $rowValues[] = "'" . addslashes($value) . "'";
+                }
+            });
+
+            $values[] = '(' . implode(', ', $rowValues) . ')';
+        }
+
+        $valuesString = implode(",\n", $values);
+        $updateString = implode(", ", array_map(function ($col) {
+            return "$col = VALUES($col)";
+        }, explode(", ", $columnList)));
+
+        if ($tableName == "ps_employee_session" || $tableName == "ps_customer_session") {
+            $columnList = $this->getColumnList($cols);
+        }
+        $sql = "INSERT INTO $tableName ($columnList) VALUES $valuesString
+        ON DUPLICATE KEY UPDATE $updateString";
+
+        return $sql;
+    }
+
+    private function checkIsDataSynced($tableName)
+    {
+        $stmt = $this->bdd1->prepare("SELECT COUNT(*) FROM `$tableName`");
+        $stmt->execute();
+        $count1 = $stmt->fetchColumn();
+
+        $stmt = $this->bdd2->prepare("SELECT COUNT(*) FROM `$tableName`");
+        $stmt->execute();
+        $count2 = $stmt->fetchColumn();
+
+        array_push($this->tableStats, ["table" => $tableName, "count1" => $count1, "count2" => $count2]);
     }
 
     /**
@@ -1004,6 +1387,29 @@ class DatabaseSyncer
     }
 
     /**
+     * function to export file for table stats 
+     *
+     * @return void
+     */
+    private function handleTableStats()
+    {
+        if (!empty($this->tableStats)) {
+            $output = '';
+            foreach ($this->tableStats as $stats) {
+                $output .= "Table: " . $stats["table"] . "\n";
+                $output .= "table 1: " . $stats["count1"] . ";\n\n";
+                $output .= "table 2: " . ($stats["count2"] ?? '') . ";\n\n";
+                $output .= "status ". $stats["count2"] == $stats["count1"] ? "✅" : "❌" .";\n\n";
+                $output .= "\n_____________________________________________________________________________________________________\n";
+            }
+            file_put_contents("stats.txt", $output);
+            echo "table stats have been saved to stats.txt\n";
+        } else {
+            echo "No stats to save.\n";
+        }
+    }
+
+    /**
      * show failed tables to sync
      *
      * @return void
@@ -1020,5 +1426,5 @@ class DatabaseSyncer
     }
 }
 
-$syncer = new DatabaseSyncer('avdb_7', 'avdb_8_2', false, false);
+$syncer = new DatabaseSyncer('allo_7', 'verify_8_2', false, false, false);
 $syncer->syncDatabases();
